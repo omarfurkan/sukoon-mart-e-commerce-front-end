@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { fetchAllProductsAsync, selectAllProducts } from '../ProductSlice';
 import { Fragment, useState } from 'react'
 import { Dialog, Disclosure, Menu, Transition } from '@headlessui/react'
 import { XMarkIcon } from '@heroicons/react/24/outline'
-import { ChevronDownIcon, FunnelIcon, MinusIcon, PlusIcon, Squares2X2Icon } from '@heroicons/react/20/solid';
+import { ChevronDownIcon, FunnelIcon, MinusIcon, PlusIcon, Squares2X2Icon, StarIcon } from '@heroicons/react/20/solid';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/20/solid'
 import { Link } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+
 
 const sortOptions = [
     { name: 'Most Popular', href: '#', current: true },
@@ -57,37 +60,19 @@ function classNames(...classes) {
 }
 
 const ProductList = () => {
+    const products = useSelector(selectAllProducts)
+
+
+
     const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
-    const products = [
-        {
-            id: 1,
-            name: 'Basic Tee',
-            href: '#',
-            imageSrc: 'https://tailwindui.com/img/ecommerce-images/product-page-01-related-product-01.jpg',
-            imageAlt: "Front of men's Basic Tee in black.",
-            price: '$35',
-            color: 'Black',
-        },
-        {
-            id: 2,
-            name: 'Basic Tee',
-            href: '#',
-            imageSrc: 'https://tailwindui.com/img/ecommerce-images/product-page-01-related-product-01.jpg',
-            imageAlt: "Front of men's Basic Tee in black.",
-            price: '$35',
-            color: 'Black',
-        },
-        {
-            id: 3,
-            name: 'Basic Tee',
-            href: '#',
-            imageSrc: 'https://tailwindui.com/img/ecommerce-images/product-page-01-related-product-01.jpg',
-            imageAlt: "Front of men's Basic Tee in black.",
-            price: '$35',
-            color: 'Black',
-        },
-        // More products...
-    ]
+    const dispatch = useDispatch();
+
+
+    useEffect(() => {
+        dispatch(fetchAllProductsAsync())
+    }, [dispatch])
+
+
     return (
         <div>
             <div>
@@ -141,7 +126,7 @@ const ProductList = () => {
                                                             <>
                                                                 <h3 className="-mx-2 -my-3 flow-root">
                                                                     <Disclosure.Button className="flex w-full items-center justify-between bg-white px-2 py-3 text-gray-400 hover:text-gray-500">
-                                                                        <span className="font-medium text-gray-900">{section.name}</span>
+                                                                        <span className="font-medium text-gray-900">{section.title}</span>
                                                                         <span className="ml-6 flex items-center">
                                                                             {open ? (
                                                                                 <MinusIcon className="h-5 w-5" aria-hidden="true" />
@@ -212,17 +197,17 @@ const ProductList = () => {
                                             <Menu.Items className="absolute right-0 z-10 mt-2 w-40 origin-top-right rounded-md bg-white shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none">
                                                 <div className="py-1">
                                                     {sortOptions.map((option) => (
-                                                        <Menu.Item key={option.name}>
+                                                        <Menu.Item key={option.title}>
                                                             {({ active }) => (
                                                                 <a
-                                                                    href={option.href}
+                                                                    href={option.thumbnail}
                                                                     className={classNames(
                                                                         option.current ? 'font-medium text-gray-900' : 'text-gray-500',
                                                                         active ? 'bg-gray-100' : '',
                                                                         'block px-4 py-2 text-sm'
                                                                     )}
                                                                 >
-                                                                    {option.name}
+                                                                    {option.title}
                                                                 </a>
                                                             )}
                                                         </Menu.Item>
@@ -263,7 +248,7 @@ const ProductList = () => {
                                                     <>
                                                         <h3 className="-my-3 flow-root">
                                                             <Disclosure.Button className="flex w-full items-center justify-between bg-white py-3 text-sm text-gray-400 hover:text-gray-500">
-                                                                <span className="font-medium text-gray-900">{section.name}</span>
+                                                                <span className="font-medium text-gray-900">{section.title}</span>
                                                                 <span className="ml-6 flex items-center">
                                                                     {open ? (
                                                                         <MinusIcon className="h-5 w-5" aria-hidden="true" />
@@ -307,28 +292,32 @@ const ProductList = () => {
                                             <div className="mx-auto max-w-2xl px-4 py-0 sm:px-6 sm:py-0 lg:max-w-7xl lg:px-8">
 
 
-                                                <div className="mt-6 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-4 xl:gap-x-8">
+                                                <div className="mt-6 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:gap-x-8">
                                                     {products.map((product) => (
-                                                        <Link to={'/product-detail'}>
-                                                            <div key={product.id} className="group relative">
-                                                                <div className="aspect-h-1 aspect-w-1 w-full overflow-hidden rounded-md bg-gray-200 lg:aspect-none group-hover:opacity-75 lg:h-80">
+                                                        <Link to="/product-detail" key={product.id}>
+                                                            <div key={product.id} className="group relative border-2 vorder-solid border-gray-200 p-2">
+                                                                <div className=" min-h-60 aspect-h-1 aspect-w-1 w-full overflow-hidden rounded-md bg-gray-200 lg:aspect-none group-hover:opacity-75 lg:h-60">
                                                                     <img
-                                                                        src={product.imageSrc}
-                                                                        alt={product.imageAlt}
+                                                                        src={product.thumbnail}
+                                                                        alt={product.title}
                                                                         className="h-full w-full object-cover object-center lg:h-full lg:w-full"
                                                                     />
                                                                 </div>
                                                                 <div className="mt-4 flex justify-between">
                                                                     <div>
                                                                         <h3 className="text-sm text-gray-700">
-                                                                            <a href={product.href}>
+                                                                            <a href={product.thumbnail}>
                                                                                 <span aria-hidden="true" className="absolute inset-0" />
-                                                                                {product.name}
+                                                                                {product.title}
                                                                             </a>
                                                                         </h3>
-                                                                        <p className="mt-1 text-sm text-gray-500">{product.color}</p>
+                                                                        <p className="mt-1 text-sm text-gray-500"> <StarIcon className='h-6 w-6 inline' />  <span className='align-bottom'>{product.rating}</span></p>
                                                                     </div>
-                                                                    <p className="text-sm font-medium text-gray-900">{product.price}</p>
+                                                                    <div>
+                                                                        <p className="text-sm font-medium text-gray-900">${Math.round(product.price * (1 - product.discountPercentage / 100))}</p>
+                                                                        <p className="text-sm font-medium line-through text-gray-600">$ {product.price}</p>
+
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         </Link>
@@ -407,7 +396,7 @@ const ProductList = () => {
 
             </div>
 
-        </div>
+        </div >
     );
 };
 
