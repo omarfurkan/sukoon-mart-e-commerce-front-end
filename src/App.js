@@ -3,8 +3,9 @@ import Home from './pages/Home';
 import { RouterProvider, createBrowserRouter } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
-import Cart from './features/cart/Cart';
 import CartPage from './pages/CartPage';
+import Checkout from './pages/Checkout';
+import ProductDetailPage from './pages/ProductDetailPage';
 
 
 
@@ -26,6 +27,14 @@ function App() {
     {
       path: '/cart',
       element: <CartPage />
+    },
+    {
+      path: '/checkout',
+      element: <Checkout />
+    },
+    {
+      path: '/product-detail',
+      element: <ProductDetailPage />
     },
   ])
   return (
