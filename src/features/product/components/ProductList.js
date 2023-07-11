@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { fetchAllProductsAsync, selectAllProducts } from '../ProductSlice';
+import { fetchAllProductsAsync, fetchProductsByFiltersAsync, selectAllProducts } from '../ProductSlice';
 import { Fragment, useState } from 'react'
 import { Dialog, Disclosure, Menu, Transition } from '@headlessui/react'
 import { XMarkIcon } from '@heroicons/react/24/outline'
@@ -10,17 +10,15 @@ import { useDispatch, useSelector } from 'react-redux';
 
 
 const sortOptions = [
-    { name: 'Most Popular', href: '#', current: true },
-    { name: 'Best Rating', href: '#', current: false },
-    { name: 'Newest', href: '#', current: false },
-    { name: 'Price: Low to High', href: '#', current: false },
-    { name: 'Price: High to Low', href: '#', current: false },
+    { name: 'Best Rating', sort: 'rating', order: 'desc', current: false },
+    { name: 'Price: Low to High', sort: 'price', order: 'asc', current: false },
+    { name: 'Price: High to Low', sort: 'price', order: 'desc', current: false },
 ]
 
 const filters = [
     {
-        id: 'color',
-        name: 'Color',
+        id: 'category',
+        name: 'Category',
         options: [
             { value: 'white', label: 'White', checked: false },
             { value: 'beige', label: 'Beige', checked: false },
@@ -29,31 +27,8 @@ const filters = [
             { value: 'green', label: 'Green', checked: false },
             { value: 'purple', label: 'Purple', checked: false },
         ],
-    },
-    {
-        id: 'category',
-        name: 'Category',
-        options: [
-            { value: 'new-arrivals', label: 'New Arrivals', checked: false },
-            { value: 'sale', label: 'Sale', checked: false },
-            { value: 'travel', label: 'Travel', checked: true },
-            { value: 'organization', label: 'Organization', checked: false },
-            { value: 'accessories', label: 'Accessories', checked: false },
-        ],
-    },
-    {
-        id: 'size',
-        name: 'Size',
-        options: [
-            { value: '2l', label: '2L', checked: false },
-            { value: '6l', label: '6L', checked: false },
-            { value: '12l', label: '12L', checked: false },
-            { value: '18l', label: '18L', checked: false },
-            { value: '20l', label: '20L', checked: false },
-            { value: '40l', label: '40L', checked: true },
-        ],
-    },
-]
+    }
+];
 
 function classNames(...classes) {
     return classes.filter(Boolean).join(' ')
@@ -61,11 +36,21 @@ function classNames(...classes) {
 
 const ProductList = () => {
     const products = useSelector(selectAllProducts)
-
-
-
     const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
     const dispatch = useDispatch();
+    const [filter, setFilter] = useState({})
+
+    const handleFilter = (e, section, option) => {
+        const newFilter = { ...filter, [section.id]: option.value }
+        setFilter(newFilter)
+        dispatch(fetchProductsByFiltersAsync(newFilter))
+    }
+    const handleSort = (e, option) => {
+        const newFilter = { ...filter, _sort: option.sort, _order: option.order };
+        setFilter(newFilter);
+        dispatch(fetchProductsByFiltersAsync)
+
+    }
 
 
     useEffect(() => {
@@ -126,7 +111,7 @@ const ProductList = () => {
                                                             <>
                                                                 <h3 className="-mx-2 -my-3 flow-root">
                                                                     <Disclosure.Button className="flex w-full items-center justify-between bg-white px-2 py-3 text-gray-400 hover:text-gray-500">
-                                                                        <span className="font-medium text-gray-900">{section.title}</span>
+                                                                        <span className="font-medium text-gray-900">{section.name}</span>
                                                                         <span className="ml-6 flex items-center">
                                                                             {open ? (
                                                                                 <MinusIcon className="h-5 w-5" aria-hidden="true" />
@@ -199,16 +184,16 @@ const ProductList = () => {
                                                     {sortOptions.map((option) => (
                                                         <Menu.Item key={option.title}>
                                                             {({ active }) => (
-                                                                <a
-                                                                    href={option.thumbnail}
+                                                                <p
+                                                                    onClick={e => handleSort(e, option)}
                                                                     className={classNames(
-                                                                        option.current ? 'font-medium text-gray-900' : 'text-gray-500',
-                                                                        active ? 'bg-gray-100' : '',
+                                                                        option.current ? 'font-medium text-gray-900 ' : 'text-gray-500',
+                                                                        active ? 'bg-gray-100 cursor-pointer' : '',
                                                                         'block px-4 py-2 text-sm'
                                                                     )}
                                                                 >
-                                                                    {option.title}
-                                                                </a>
+                                                                    {option.name}
+                                                                </p>
                                                             )}
                                                         </Menu.Item>
                                                     ))}
@@ -248,7 +233,7 @@ const ProductList = () => {
                                                     <>
                                                         <h3 className="-my-3 flow-root">
                                                             <Disclosure.Button className="flex w-full items-center justify-between bg-white py-3 text-sm text-gray-400 hover:text-gray-500">
-                                                                <span className="font-medium text-gray-900">{section.title}</span>
+                                                                <span className="font-medium text-gray-900">{section.name}</span>
                                                                 <span className="ml-6 flex items-center">
                                                                     {open ? (
                                                                         <MinusIcon className="h-5 w-5" aria-hidden="true" />
@@ -268,6 +253,7 @@ const ProductList = () => {
                                                                             defaultValue={option.value}
                                                                             type="checkbox"
                                                                             defaultChecked={option.checked}
+                                                                            onChange={e => handleFilter(e, section, option)}
                                                                             className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                                                                         />
                                                                         <label
@@ -306,10 +292,10 @@ const ProductList = () => {
                                                                 <div className="mt-4 flex justify-between">
                                                                     <div>
                                                                         <h3 className="text-sm text-gray-700">
-                                                                            <a href={product.thumbnail}>
+                                                                            <div href={product.thumbnail}>
                                                                                 <span aria-hidden="true" className="absolute inset-0" />
                                                                                 {product.title}
-                                                                            </a>
+                                                                            </div>
                                                                         </h3>
                                                                         <p className="mt-1 text-sm text-gray-500"> <StarIcon className='h-6 w-6 inline' />  <span className='align-bottom'>{product.rating}</span></p>
                                                                     </div>
