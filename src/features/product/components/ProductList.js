@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { fetchProductsByFiltersAsync, selectAllProducts, selectTotalItems } from '../ProductSlice';
+import { fetchBrandsAsync, fetchCategoriesAsync, fetchProductsByFiltersAsync, selectAllProducts, selectBrands, selectCategories, selectTotalItems } from '../ProductSlice';
 import { Fragment, useState } from 'react'
 import { Dialog, Disclosure, Menu, Transition } from '@headlessui/react'
 import { XMarkIcon } from '@heroicons/react/24/outline'
@@ -10,27 +10,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { ITEMS_PER_PAGE } from '../../../app/constants'
 
 
-const sortOptions = [
-    { name: 'Best Rating', sort: 'rating', order: 'desc', current: false },
-    { name: 'Price: Low to High', sort: 'price', order: 'asc', current: false },
-    { name: 'Price: High to Low', sort: 'price', order: 'desc', current: false },
-]
-
-const filters = [
-    {
-        id: 'category',
-        name: 'Category',
-        options: [
-            { value: 'white', label: 'White', checked: false },
-            { value: 'beige', label: 'Beige', checked: false },
-            { value: 'blue', label: 'Blue', checked: true },
-            { value: 'brown', label: 'Brown', checked: false },
-            { value: 'green', label: 'Green', checked: false },
-            { value: 'purple', label: 'Purple', checked: false },
-        ],
-    }
-];
-
 function classNames(...classes) {
     return classes.filter(Boolean).join(' ')
 }
@@ -38,31 +17,54 @@ function classNames(...classes) {
 const ProductList = () => {
     const dispatch = useDispatch();
     const products = useSelector(selectAllProducts);
+    const brands = useSelector(selectBrands);
+    const categories = useSelector(selectCategories);
     const totalItems = useSelector(selectTotalItems)
     const [filter, setFilter] = useState({});
     const [sort, setSort] = useState({});
     const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
     const [page, setPage] = useState(1);
 
+    const filters = [
+
+        {
+            id: 'brands',
+            name: 'Brands',
+            option: brands
+        },
+        {
+            id: 'categories',
+            name: 'Categories',
+            option: categories
+        }
+    ];
+
+    const sortOptions = [
+        { name: 'Best Rating', sort: 'rating', order: 'desc', current: false },
+        { name: 'Price: Low to High', sort: 'price', order: 'asc', current: false },
+        { name: 'Price: High to Low', sort: 'price', order: 'desc', current: false },
+    ]
+
+
     const handleFilter = (e, section, option) => {
-        console.log(section)
-        console.log(option)
-        const newFilter = { ...filter }
-        //Todo:on server it will support multiple categories
+        console.log(e.target.checked);
+        const newFilter = { ...filter };
         if (e.target.checked) {
             if (newFilter[section.id]) {
-                newFilter[section.id].push(option.value)
+                newFilter[section.id].push(option.value);
             } else {
-                newFilter[section.id] = [option.value]
+                newFilter[section.id] = [option.value];
             }
         } else {
-            const index = newFilter[section.id].find(el => el === option.value)
-            newFilter[section.id].splice(index, 1)
+            const index = newFilter[section.id].findIndex(
+                (el) => el === option.value
+            );
+            newFilter[section.id].splice(index, 1);
         }
-        console.log({ newFilter })
-        setFilter(newFilter)
+        console.log({ newFilter });
 
-    }
+        setFilter(newFilter);
+    };
 
     const handleSort = (e, option) => {
         const sort = { _sort: option.sort, _order: option.order };
@@ -84,13 +86,20 @@ const ProductList = () => {
         setPage(1)
     }, [totalItems, sort])
 
+    useEffect(() => {
+        dispatch(fetchBrandsAsync())
+        dispatch(fetchCategoriesAsync())
+    }, [dispatch])
+
 
     return (
         <div>
             <div>
                 <div className="bg-white">
                     <div>
-                        <MobileFilter handleFilter={handleFilter} mobileFiltersOpen={mobileFiltersOpen} setMobileFiltersOpen={setMobileFiltersOpen} />
+                        <MobileFilter
+                            filters={filters}
+                            handleFilter={handleFilter} mobileFiltersOpen={mobileFiltersOpen} setMobileFiltersOpen={setMobileFiltersOpen} />
 
                         <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                             <div className="flex items-baseline justify-between border-b border-gray-200 pb-6 pt-24">
@@ -161,7 +170,10 @@ const ProductList = () => {
                                 </h2>
 
                                 <div className="grid grid-cols-1 gap-x-8 gap-y-10 lg:grid-cols-4">
-                                    <DesktopFilter handleFilter={handleFilter} />
+                                    <DesktopFilter
+                                        filters={filters}
+                                        handleFilter={handleFilter}
+                                    />
                                     <div className="lg:col-span-3">
                                         <ProductGrid products={products} />
                                     </div>
@@ -188,7 +200,7 @@ const ProductList = () => {
     );
 };
 
-function MobileFilter({ mobileFiltersOpen, setMobileFiltersOpen, handleFilter }) {
+function MobileFilter({ mobileFiltersOpen, setMobileFiltersOpen, handleFilter, filters }) {
 
     return (
         <Transition.Root show={mobileFiltersOpen} as={Fragment}>
@@ -283,7 +295,7 @@ function MobileFilter({ mobileFiltersOpen, setMobileFiltersOpen, handleFilter })
         </Transition.Root >
     )
 };
-function DesktopFilter({ handleFilter }) {
+function DesktopFilter({ handleFilter, filters }) {
     return <form className="hidden lg:block">
 
 
@@ -304,7 +316,7 @@ function DesktopFilter({ handleFilter }) {
                             </Disclosure.Button>
                         </h3>
                         <Disclosure.Panel className="pt-6">
-                            <div className="space-y-4">
+                            {/* <div className="space-y-4">
                                 {section.options.map((option, optionIdx) => (
                                     <div key={option.value} className="flex items-center">
                                         <input
@@ -313,7 +325,7 @@ function DesktopFilter({ handleFilter }) {
                                             defaultValue={option.value}
                                             type="checkbox"
                                             defaultChecked={option.checked}
-                                            onChange={e => handleFilter(e, section, option)}
+                                            onChange={(e) => handleFilter(e, section, option)}
                                             className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                                         />
                                         <label
@@ -324,7 +336,7 @@ function DesktopFilter({ handleFilter }) {
                                         </label>
                                     </div>
                                 ))}
-                            </div>
+                            </div> */}
                         </Disclosure.Panel>
                     </>
                 )}
@@ -333,17 +345,18 @@ function DesktopFilter({ handleFilter }) {
     </form>
 };
 function Pagination({ page, setPage, handlePage, totalItems }) {
+    const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE)
     return (
         <div className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
             <div className="flex flex-1 justify-between sm:hidden">
                 <div
-                    href="#"
+                    onClick={e => handlePage(page > 1 ? page - 1 : page)}
                     className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
                 >
                     Previous
                 </div>
                 <div
-                    href="#"
+                    onClick={e => handlePage(page < totalPages ? page + 1 : page)}
                     className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
                 >
                     Next
@@ -359,35 +372,35 @@ function Pagination({ page, setPage, handlePage, totalItems }) {
                 </div>
                 <div>
                     <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
-                        <a
-                            href="#"
+                        <div
+                            onClick={e => handlePage(page - 1)}
                             className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
                         >
                             <span className="sr-only">Previous</span>
                             <ChevronLeftIcon className="h-5 w-5" aria-hidden="true" />
-                        </a>
+                        </div>
                         {/* Current: "z-10 bg-indigo-600 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600", Default: "text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:outline-offset-0" */}
 
-                        {Array.from({ length: Math.ceil(totalItems / ITEMS_PER_PAGE) }).map((el, index) =>
+                        {Array.from({ length: totalPages }).map((el, index) =>
                             <div
-                                onClick={e => handlePage(index + 1)}
+                                onClick={e => handlePage(page > 1 ? page - 1 : page)}
                                 aria-current="page"
                                 className={`relative cursor-pointer z-10 inline-flex items-center${index + 1 === page ? 'bg-indigo-600 text-red-500 font-bold' : 'text-gray-400'}  px-4 py-2 text-sm font-semibold  focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600`}
                             >
                                 {index + 1}
                             </div>)
                         }
-                        <a
-                            href="#"
+                        <div
+                            onClick={e => handlePage(page < totalPages ? page + 1 : page)}
                             className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
                         >
                             <span className="sr-only">Next</span>
                             <ChevronRightIcon className="h-5 w-5" aria-hidden="true" />
-                        </a>
+                        </div>
                     </nav>
                 </div>
-            </div>
-        </div>)
+            </div >
+        </div >)
 };
 function ProductGrid({ products }) {
     return (<div className="bg-white">
