@@ -66,6 +66,7 @@ const ProductList = () => {
         setFilter(newFilter);
     };
 
+
     const handleSort = (e, option) => {
         const sort = { _sort: option.sort, _order: option.order };
         setSort(sort);
@@ -316,8 +317,8 @@ function DesktopFilter({ handleFilter, filters }) {
                             </Disclosure.Button>
                         </h3>
                         <Disclosure.Panel className="pt-6">
-                            {/* <div className="space-y-4">
-                                {section.options.map((option, optionIdx) => (
+                            <div className="space-y-4">
+                                {/* {section.options.map((option, optionIdx) => (
                                     <div key={option.value} className="flex items-center">
                                         <input
                                             id={`filter-${section.id}-${optionIdx}`}
@@ -335,8 +336,8 @@ function DesktopFilter({ handleFilter, filters }) {
                                             {option.label}
                                         </label>
                                     </div>
-                                ))}
-                            </div> */}
+                                ))} */}
+                            </div>
                         </Disclosure.Panel>
                     </>
                 )}
@@ -409,7 +410,7 @@ function ProductGrid({ products }) {
 
             <div className="mt-6 grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:gap-x-8">
                 {products.map((product) => (
-                    <Link to="/product-detail" key={product.id}>
+                    <Link to={`/product-detail/${product.id}`} key={product.id}>
                         <div key={product.id} className="group relative border-2 vorder-solid border-gray-200 p-2">
                             <div className=" min-h-60 aspect-h-1 aspect-w-1 w-full overflow-hidden rounded-md bg-gray-200 lg:aspect-none group-hover:opacity-75 lg:h-60">
                                 <img
