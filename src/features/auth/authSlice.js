@@ -2,7 +2,7 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { createUser } from "./authAPI";
 
 const initialState = {
-    loggedInUser: null,
+    loggedInUser: '',
     status: 'idle'
 }
 
@@ -22,10 +22,10 @@ export const userSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder
-            .addCase(createUserAsync, state => {
+            .addCase(createUserAsync.pending, state => {
                 state.status = 'loading'
             })
-            .addCase(createUserAsync, (state, action) => {
+            .addCase(createUserAsync.fulfilled, (state, action) => {
                 state.status = 'idle';
                 state.loggedInUser = action.payload;
             })
