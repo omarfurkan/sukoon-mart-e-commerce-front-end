@@ -2351,6 +2351,12 @@
       "email": "a@gmail.cm",
       "password": "12345678aA",
       "id": 3
+    },
+    {
+      "email": "abc@gmail.com",
+      "password": "123456789aA",
+      "id": 4
     }
-  ]
+  ],
+  "cart": []
 }
